@@ -1,54 +1,60 @@
 #include "raylib.h"
 #include "General.h"
+#include "Camera controls.h"
+#include "Ball_class.h"
+using namespace constants;
+
 
 int main()
 {
 
+    Objects Ball;
     InitAll();
     // for time releated 
     int frameCount =0 ;
     float timeElapsed = 0.0;
 
 
+    
+
+
     float gravity = 9.81;
 
-    float ball_radius = 14.0;
-    float ball_weight = 5;
-    Vector2 ball_position = {GetScreenWidth()/2 - ball_radius, GetScreenHeight()/2 - ball_radius};     // @ center of window
-    float ball_bounceCoefficient = 0.5f;
 
     // physics
-    float previousPosition = ball_position.y;
+    float previousPosition = Ball.position.y;
     float previousTime = timeElapsed;
 
-    float ball_velocity = 0.0;
-    float ball_acceleration = (gravity) / (timeElapsed*timeElapsed);
-
-    //float ball_ke = (0.5) * ball_weight * ball_velocity*ball_velocity;
-    float ball_ke = 0;
+    float Ball_acceleration = (gravity) / (timeElapsed*timeElapsed);
+    //float Ball_ke = (0.5) * Ball.weight * Ball.velocity*Ball.velocity;
+    float Ball_ke = 0;
 
     
 
     while (!WindowShouldClose())    
     {
 
-        ball_velocity = (ball_position.y - previousPosition) / (timeElapsed - previousTime);
+        // camera zoom controls
+        CameraZoomControls();
+
+
+
+        Ball.velocity = (Ball.position.y - previousPosition) / (timeElapsed - previousTime);
 
         // // bounce when it goes out of bounds
-        // if(ball_position.y >= GetScreenHeight() - ball_radius){
+        // if(Ball.position.y >= GetScreenHeight() - Ball.radius){
 
         // }
         
         
-        previousPosition = ball_position.y;
+        previousPosition = Ball.position.y;
         previousTime = timeElapsed;
-        ball_ke = 0.01 + (0.5) * ball_weight * ball_velocity*ball_velocity;
+        Ball_ke = 0.01 + (0.5) * Ball.weight * Ball.velocity*Ball.velocity;
 
-        ball_position.y -= gravity/(timeElapsed*timeElapsed);
+        Ball.position.y = gravity/(timeElapsed*timeElapsed);
         
         
         
-        DrawLine(39, 90,  450, 670, BLACK);
         // calculate how much time has elapsed
         frameCount++;
         timeElapsed = (float)frameCount/GetFPS() ;
@@ -56,12 +62,21 @@ int main()
 
 
         BeginDrawing();
-            DrawCircle(ball_position.x, ball_position.y, ball_radius, BLACK);
-            // show time
-            DrawText(TextFormat("time: %f", timeElapsed), 10, 10, 40, BLUE);
-            DrawText(TextFormat("%f\n\nvelocity", ball_velocity), 10, 10+100, 40, BLUE);
-            DrawText(TextFormat("%f\n\nkineitc enrgy", ball_ke), 10, 10+200, 40, BLUE);
             ClearBackground(RAYWHITE);
+
+            BeginMode2D(Camera);
+                DrawRectangle(-6000, 320, 13000, 8000, DARKGRAY);
+                DrawLine(39, 90,  450, 670, BLACK);
+                DrawCircle(Ball.position.x, Ball.position.y, Ball.radius, BLACK);
+            EndMode2D();
+
+            // show time
+            // everything under here are shown in screen constantly
+            // i.e., in everyframe, they are shown at the same lcoation regardless of where the camera is
+            DrawText(TextFormat("time: %f", timeElapsed), 10, 10, 40, BLUE);
+            DrawText(TextFormat("%f\n\nvelocity", Ball.velocity), 10, 10+100, 40, BLUE);
+            DrawText(TextFormat("%f\n\nkineitc enrgy", Ball_ke), 10, 10+200, 40, BLUE);
+            DrawText(TextFormat("%f\n\nzoom", Camera.zoom), 10, 10+300, 40, BLUE);
         EndDrawing();
     }
 
