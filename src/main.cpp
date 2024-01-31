@@ -185,7 +185,9 @@ void Camera_initialize(){
 
 
 void CameraZoomControls(){
-        camera.zoom += ((float)GetMouseWheelMove() * 0.10f);
+    float zoomCoefficient = 0.8f;
+    camera.zoom += ((float)GetMouseWheelMove() * (camera.zoom * (zoomCoefficient*zoomCoefficient)));
+
 
 
         // pan
@@ -198,27 +200,33 @@ void CameraZoomControls(){
 
 
         // zoom controls
-        if(IsKeyDown(KEY_R))
+        if(IsKeyDown(KEY_Q))
             camera.zoom -= 0.00001f;
 
-        if(IsKeyDown(KEY_F))
+        if(IsKeyDown(KEY_W))
             camera.zoom -= 0.005f;
 
-        if(IsKeyPressed(KEY_A)){
+        if(IsKeyPressed(KEY_R)){
+            // reset
             camera.zoom = 1.0f;
         }
         if (IsKeyDown(KEY_S)){
             camera.zoom +=  9.0f;
         }
-        if (IsKeyDown(KEY_W)){
+        if (IsKeyDown(KEY_X)){
             camera.zoom -=  9.0f;
+        }
+
+        // out of bounds
+        if(camera.zoom <=0){
+            camera.zoom = 0.01f;
         }
 }
 
 void Ball_initialize(){
     Ball.radius = 50.0;
     Ball.weight = 5;
-    Ball.bounceCoefficient = 0.5f;
+    Ball.bounceCoefficient = 0.25f;
     // Ball.position = (custom_Vect2){GetScreenWidth()/2 - Ball.radius, GetScreenHeight()/2 - Ball.radius};     // @ center of window
     //Ball.position = (Vector2){GetScreenWidth()/2 - Ball.radius, GetScreenHeight()/2 - Ball.radius};     // @ center of window
     Ball.position = (Vector2){GetScreenWidth()/2 - Ball.radius, 0 - Ball.radius};     // @ center of window
