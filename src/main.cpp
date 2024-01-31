@@ -42,7 +42,8 @@ int main()
     SetTargetFPS(144);
 
 
-    float gravity = 9.81 * 100;
+    // float gravity = 9.81 * 100;
+    float gravity = 9.81;
 
     // physics
     float previousVelocity = Ball.velocity;
@@ -81,7 +82,7 @@ int main()
         previousTime = timeElapsed;
         previousVelocity = Ball.velocity;
 
-        ball_ke = 0.01 + (0.5) * Ball.weight * Ball.velocity*Ball.velocity;
+        ball_ke = (0.5) * Ball.weight * Ball.velocity*Ball.velocity;
 
 
         /************* handle gravity **********************/
@@ -100,12 +101,14 @@ int main()
         // using example raylib 
         /////////////////////// working
         //////////////////////////////// fix why it slides down
-        Ball.position.y += Ball.velocity * GetFrameTime();
+        // Ball.position.y = Ball.position.y + Ball.velocity * GetFrameTime();
+        // this sht code below is the culprit for sliding down
+        // Ball.position.y += Ball.velocity * GetFrameTime();
 
 
 
         // Ball.position.y += Ball.velocity;                // linearly scaling velocity
-        // Ball.position.y += Ball.velocity * GetTime();       // mucuh more realsitic         // exponentially scaling velocity
+        Ball.position.y += Ball.velocity * GetTime();       // mucuh more realsitic         // exponentially scaling velocity
 
 		//Ball.position.y += gravity * GetFrameTime();
         std::cout << "ball accel : " << ball_acceleration << "\n\n";
@@ -116,9 +119,17 @@ int main()
             Ball.velocity = (Ball.velocity * -2 * Ball.bounceCoefficient);
 
         }
-        else if(IsKeyPressed(KEY_P) && Ball.velocity < 0){
-            Ball.velocity = (Ball.velocity * -2 * Ball.bounceCoefficient);
+        // else if(IsKeyPressed(KEY_I) && Ball.velocity < 0){
+        //     Ball.velocity = (Ball.velocity * -2 * Ball.bounceCoefficient);
+        // }
+
+        // jump controls
+        if(IsKeyPressed(KEY_SPACE) ){
+            Ball.velocity += (Ball.velocity * -5);
+
         }
+
+
 
         // bounce here if out of bounds
         if(Ball.position.y > GetScreenHeight()){
@@ -152,11 +163,11 @@ int main()
             DrawText(TextFormat("time: %f", timeElapsed), 10, 10, 40, BLUE);
             DrawText(TextFormat("%f\n\nposition Y", Ball.position.y), 10, 10+100, 40, BLUE);
             // DrawText(TextFormat("%f\n\nposition Y", newballpos), 10, 10+100, 40, BLUE);
-            DrawText(TextFormat("%f\n\nvelocity", Ball.velocity), 10, 10+200, 40, BLUE);
+            DrawText(TextFormat("%f\n\nBall.velocity", Ball.velocity), 10, 10+200, 40, BLUE);
             DrawText(TextFormat("%f\n\nkineitc enrgy", ball_ke), 10, 10+300, 40, BLUE);
             DrawText(TextFormat("%f\n\nzoom", camera.zoom), 10, 10+400, 40, BLUE);
             //DrawText(TextFormat("%f\n\ninitial ball position", GetScreenHeight()/2 - Ball.radius), 10, 10+500, 40, BLUE);
-            DrawText(TextFormat("%f\n\ntieelapsed", Ball.velocity + (gravity* (timeElapsed - previousTime))), 10, 10+600, 40, BLUE);
+            DrawText(TextFormat("%f\n\nBall.veloctiy+gravity", Ball.velocity + (gravity* (timeElapsed - previousTime))), 10, 10+600, 40, BLUE);
             DrawText(TextFormat("%f\n\nGetFrameTime", GetFrameTime()), 10, 10+700, 40, BLUE);
             DrawText(TextFormat("%f\n\nGetTime", GetTime()), 10, 10+800, 40, BLUE);
         EndDrawing();
@@ -173,20 +184,28 @@ int main()
 
 
 void Camera_initialize(){
-    //camera.target = (Vector2){ Ball.position.x + 20.0f, Ball.position.y + 20.0f };
+    // camera.target = (Vector2){ Ball.position.x + 20.0f, Ball.position.y + 20.0f };
 	int screenWidth = GetScreenWidth();
 	int screenHeight = GetScreenHeight();
-    camera.target = (Vector2){0,0};
-	//camera.target = (Vector2){-1600,-1500};
+    // camera.target = (Vector2){0,0};
+    camera.target = (Vector2){screenWidth/2, screenHeight/2};
     camera.offset = (Vector2){screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
+    camera.zoom = 0.8f;
 }
 
 
 void CameraZoomControls(){
-    float zoomCoefficient = 0.8f;
-    camera.zoom += ((float)GetMouseWheelMove() * (camera.zoom * (zoomCoefficient*zoomCoefficient)));
+    float zoomCoefficient = 0.1f;
+    if(camera.zoom <=1.0f){                     // making zoom at longer distances smoother
+        zoomCoefficient =  zoomCoefficient * 0.5f;
+    }
+    if((float)GetMouseWheelMove() <0 ){         // to make zoom out
+        camera.zoom += ((float)GetMouseWheelMove() * (float)GetMouseWheelMove() * zoomCoefficient * -1);
+    }
+    else{                                       // to make zoom in
+        camera.zoom += ((float)GetMouseWheelMove() * (float)GetMouseWheelMove() * zoomCoefficient);
+    }
 
 
 
@@ -217,7 +236,7 @@ void CameraZoomControls(){
             camera.zoom -=  9.0f;
         }
 
-        // out of bounds
+        // handle reversing zoom / out of bounds
         if(camera.zoom <=0){
             camera.zoom = 0.01f;
         }
